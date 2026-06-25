@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>半导体器件三维可视化</title>
+  </head>
+  <body>
+    <div id="app">
+      <main class="workspace">
+        <section class="viewer-shell" aria-label="三维半导体器件视图">
+          <div id="scene" class="scene"></div>
+          <div class="legend" aria-label="掺杂与载流子图例">
+            <span><i class="legend-dot p"></i>P 型区</span>
+            <span><i class="legend-dot n"></i>N 型区</span>
+            <span><i class="legend-dot metal"></i>金属/电极</span>
+            <span><i class="legend-dot oxide"></i>氧化层</span>
+            <span><i class="legend-dot depletion"></i>耗尽层</span>
+            <span><i class="legend-dot ion"></i>固定离子</span>
+            <span><i class="legend-dot electron"></i>电子</span>
+            <span><i class="legend-dot hole"></i>空穴</span>
+          </div>
+        </section>
+
+        <aside class="panel" aria-label="控制面板">
+          <header class="panel-header">
+            <p class="eyebrow">Semiconductor Lab</p>
+            <h1>二极管、BJT 与 MOSFET</h1>
+          </header>
+
+          <div class="control-block">
+            <label for="deviceSelect">器件</label>
+            <select id="deviceSelect">
+              <option value="diode">PN 二极管</option>
+              <option value="npn">NPN 三极管</option>
+              <option value="pnp">PNP 三极管</option>
+              <option value="nmos">N 沟道 MOSFET</option>
+              <option value="pmos">P 沟道 MOSFET</option>
+            </select>
+          </div>
+
+          <div class="segmented" role="group" aria-label="工作状态">
+            <button class="mode-button active" data-mode="structure">形成</button>
+            <button class="mode-button" data-mode="bias">阻断</button>
+            <button class="mode-button" data-mode="flow">导通</button>
+          </div>
+
+          <div class="readout">
+            <div>
+              <span>偏置状态</span>
+              <strong id="biasState">正向偏置</strong>
+            </div>
+            <div>
+              <span>主要载流子</span>
+              <strong id="carrierState">电子与空穴扩散</strong>
+            </div>
+          </div>
+
+          <section class="curve-panel" aria-label="电流曲线">
+            <div class="curve-header">
+              <h2>电流曲线</h2>
+              <span id="curveRegion">截止区</span>
+            </div>
+            <canvas id="currentCurve" width="640" height="360"></canvas>
+            <input id="biasSlider" class="bias-slider" type="range" min="0" max="1000" value="500" />
+            <div class="curve-readout">
+              <div>
+                <span id="biasInputLabel">偏置</span>
+                <strong id="biasInputValue">0 V</strong>
+              </div>
+              <div>
+                <span id="curveCurrentLabel">电流</span>
+                <strong id="curveCurrentValue">0 A</strong>
+              </div>
+            </div>
+          </section>
+
+          <article class="explain">
+            <h2 id="deviceTitle">PN 二极管</h2>
+            <p id="deviceSummary"></p>
+            <ul id="principleList"></ul>
+          </article>
+        </aside>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
