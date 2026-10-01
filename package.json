@@ -1,12 +1,14 @@
 {
   "name": "semiconductor-visualizer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc && vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "verify": "esbuild scripts/verify-physics.ts --bundle --platform=node --outfile=node_modules/.tmp/verify.cjs --log-level=warning && node node_modules/.tmp/verify.cjs",
+    "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "three": "^0.172.0",

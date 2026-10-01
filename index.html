@@ -3,84 +3,121 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>半导体器件三维可视化</title>
+    <meta name="description" content="从工艺流程到器件物理：二极管、BJT 与 MOSFET 的三维剖面、二维泊松求解与紧凑模型 I–V 特性。" />
+    <title>SemiLab 半导体器件仿真工作台</title>
   </head>
   <body>
     <div id="app">
-      <main class="workspace">
-        <section class="viewer-shell" aria-label="三维半导体器件视图">
-          <div id="scene" class="scene"></div>
-          <div class="legend" aria-label="掺杂与载流子图例">
-            <span><i class="legend-dot p"></i>P 型区</span>
-            <span><i class="legend-dot n"></i>N 型区</span>
-            <span><i class="legend-dot metal"></i>金属/电极</span>
-            <span><i class="legend-dot oxide"></i>氧化层</span>
-            <span><i class="legend-dot depletion"></i>耗尽层</span>
-            <span><i class="legend-dot ion"></i>固定离子</span>
-            <span><i class="legend-dot electron"></i>电子</span>
-            <span><i class="legend-dot hole"></i>空穴</span>
+      <header class="topbar">
+        <div class="brand">
+          <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+            <rect x="4" y="4" width="24" height="24" rx="4" fill="none" stroke="currentColor" stroke-width="2" />
+            <path d="M4 18 H28" stroke="currentColor" stroke-width="2" />
+            <path d="M12 4 V18 M20 4 V18" stroke="currentColor" stroke-width="1.5" opacity="0.6" />
+            <circle cx="16" cy="24" r="2.2" fill="currentColor" />
+          </svg>
+          <div>
+            <b>SemiLab</b>
+            <small>半导体器件 · 工艺–物理仿真工作台</small>
           </div>
+        </div>
+        <nav class="device-tabs" id="deviceTabs" aria-label="器件"></nav>
+        <div class="mode-switch" role="tablist" aria-label="模式">
+          <button data-mode="process" role="tab"><span>①</span> 工艺流程</button>
+          <button data-mode="physics" role="tab"><span>②</span> 器件物理</button>
+        </div>
+        <div class="status" id="status"><i></i><span>初始化…</span></div>
+      </header>
+
+      <main class="layout">
+        <section class="viewport" id="viewport">
+          <div id="scene" class="scene"></div>
+          <div class="vp-title">
+            <h1 id="devName">—</h1>
+            <p id="devEng"></p>
+          </div>
+          <div class="vp-tools">
+            <div class="btn-group" id="viewButtons">
+              <button data-view="iso" title="等轴测视图">等轴测</button>
+              <button data-view="front" title="正对剖面">剖面</button>
+              <button data-view="top" title="俯视版图">俯视</button>
+            </div>
+            <div class="toggles" id="toggles">
+              <label><input type="checkbox" data-toggle="labels" checked />标注</label>
+              <label><input type="checkbox" data-toggle="dims" checked />尺寸</label>
+              <label title="BPSG 层间介质与钝化层"><input type="checkbox" data-toggle="ild" checked />层间介质</label>
+              <label><input type="checkbox" data-toggle="metal" checked />金属</label>
+              <label class="physics-only"><input type="checkbox" data-toggle="carriers" checked />载流子</label>
+            </div>
+          </div>
+          <div class="vp-legend" id="legend">
+            <div class="legend-head">
+              <select id="fieldSelect" class="physics-only" aria-label="剖面物理量"></select>
+              <span id="legendTitle" class="process-only">净掺杂 N_D − N_A</span>
+            </div>
+            <div class="colorbar" id="colorbar"></div>
+            <div class="colorbar-ticks" id="colorbarTicks"></div>
+            <div class="legend-keys" id="legendKeys"></div>
+          </div>
+          <div class="vp-step process-only" id="stepCaption"></div>
+          <div class="vp-scale" id="scaleBar"><i></i><span>1 μm</span></div>
         </section>
 
-        <aside class="panel" aria-label="控制面板">
-          <header class="panel-header">
-            <p class="eyebrow">Semiconductor Lab</p>
-            <h1>二极管、BJT 与 MOSFET</h1>
-          </header>
-
-          <div class="control-block">
-            <label for="deviceSelect">器件</label>
-            <select id="deviceSelect">
-              <option value="diode">PN 二极管</option>
-              <option value="npn">NPN 三极管</option>
-              <option value="pnp">PNP 三极管</option>
-              <option value="nmos">N 沟道 MOSFET</option>
-              <option value="pmos">P 沟道 MOSFET</option>
-            </select>
-          </div>
-
-          <div class="segmented" role="group" aria-label="工作状态">
-            <button class="mode-button active" data-mode="structure">形成</button>
-            <button class="mode-button" data-mode="bias">阻断</button>
-            <button class="mode-button" data-mode="flow">导通</button>
-          </div>
-
-          <div class="readout">
-            <div>
-              <span>偏置状态</span>
-              <strong id="biasState">正向偏置</strong>
-            </div>
-            <div>
-              <span>主要载流子</span>
-              <strong id="carrierState">电子与空穴扩散</strong>
-            </div>
-          </div>
-
-          <section class="curve-panel" aria-label="电流曲线">
-            <div class="curve-header">
-              <h2>电流曲线</h2>
-              <span id="curveRegion">截止区</span>
-            </div>
-            <canvas id="currentCurve" width="640" height="360"></canvas>
-            <input id="biasSlider" class="bias-slider" type="range" min="0" max="1000" value="500" />
-            <div class="curve-readout">
-              <div>
-                <span id="biasInputLabel">偏置</span>
-                <strong id="biasInputValue">0 V</strong>
+        <aside class="side" id="side">
+          <div class="process-only" id="processPanel">
+            <div class="panel-block">
+              <div class="block-head">
+                <h2>工艺流程</h2>
+                <span class="muted" id="stepCounter"></span>
               </div>
-              <div>
-                <span id="curveCurrentLabel">电流</span>
-                <strong id="curveCurrentValue">0 A</strong>
+              <div class="transport">
+                <button data-step="first" title="第一步">⏮</button>
+                <button data-step="prev" title="上一步 (←)">◀</button>
+                <button data-step="play" class="primary" id="playBtn" title="自动播放">▶ 播放</button>
+                <button data-step="next" title="下一步 (→)">▶</button>
+                <button data-step="last" title="完成">⏭</button>
               </div>
+              <ol class="steps" id="stepList"></ol>
             </div>
-          </section>
+            <div class="panel-block step-detail" id="stepDetail"></div>
+          </div>
 
-          <article class="explain">
-            <h2 id="deviceTitle">PN 二极管</h2>
-            <p id="deviceSummary"></p>
-            <ul id="principleList"></ul>
-          </article>
+          <div class="physics-only" id="physicsPanel">
+            <div class="panel-block">
+              <div class="block-head">
+                <h2>偏置条件</h2>
+                <button class="ghost" id="sweepBtn" title="自动扫描主偏置">↻ 扫描</button>
+              </div>
+              <div id="biasControls"></div>
+              <div id="schematic"></div>
+            </div>
+            <div class="panel-block">
+              <div class="region" id="regionBadge"></div>
+              <div class="readouts" id="readouts"></div>
+            </div>
+            <div class="panel-block">
+              <h2>原理解读</h2>
+              <div class="explain" id="explain"></div>
+            </div>
+            <div class="panel-block">
+              <details open>
+                <summary>从工艺提取的器件参数</summary>
+                <div class="readouts params" id="params"></div>
+              </details>
+              <p class="intro muted" id="intro"></p>
+            </div>
+          </div>
         </aside>
+
+        <section class="dock" id="dock">
+          <div class="dock-head">
+            <label>剖线
+              <select id="cutSelect"></select>
+            </label>
+            <span class="muted dock-note" id="dockNote"></span>
+          </div>
+          <div class="cards" id="cards"></div>
+        </section>
       </main>
     </div>
     <script type="module" src="/src/main.ts"></script>

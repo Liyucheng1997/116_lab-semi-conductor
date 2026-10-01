@@ -1,0 +1,11 @@
+import { chromium } from "playwright";
+const [,, url, out] = process.argv;
+const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
+const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+page.on("pageerror", (e) => console.log("[pageerror]", e.message));
+await page.goto(url, { waitUntil: "domcontentloaded" });
+await page.waitForTimeout(6000);
+await page.screenshot({ path: out, fullPage: true });
+const overflow = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
+console.log(JSON.stringify(overflow));
+await browser.close();

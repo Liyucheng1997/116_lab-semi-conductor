@@ -1,0 +1,10 @@
+import { chromium } from "playwright";
+const [,, url, script, wait = "4000"] = process.argv;
+const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
+const page = await browser.newPage({ viewport: { width: 1600, height: 940 } });
+page.on("console", (m) => console.log("[console]", m.type(), m.text()));
+page.on("pageerror", (e) => console.log("[pageerror]", e.message, e.stack));
+await page.goto(url, { waitUntil: "domcontentloaded" });
+await page.waitForTimeout(+wait);
+console.log(JSON.stringify(await page.evaluate(script), null, 1));
+await browser.close();
